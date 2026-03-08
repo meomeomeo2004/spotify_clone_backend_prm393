@@ -1,5 +1,4 @@
 package com.example.spotify.service;
-
 import com.example.spotify.dto.LoginRequest;
 import com.example.spotify.dto.RegisterRequest;
 import com.example.spotify.entity.Role;
@@ -63,6 +62,4 @@ public class AuthService {
 
         return "Wrong password";
     }
-
-
 }
