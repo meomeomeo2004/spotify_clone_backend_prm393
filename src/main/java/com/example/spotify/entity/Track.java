@@ -6,11 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.*;
 
-@Entity
-@Getter
-@Setter
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -53,7 +49,8 @@ public class Track {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    public Track() {}
+    public Track() {
+    }
 
     public Long getTrackId() {
         return trackId;
@@ -69,14 +66,6 @@ public class Track {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public Integer getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Integer duration) {
-        this.duration = duration;
     }
 
     public String getAudioUrl() {
