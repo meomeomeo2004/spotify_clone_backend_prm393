@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.spotify.entity.Track;
@@ -21,6 +22,18 @@ public class TrackController {
     @GetMapping("/tracks/{id}")
     public ResponseEntity<Track> getTrackById(@PathVariable Long id) {
         Track track = trackService.getTrackByID(id);
+        return ResponseEntity.ok(track);
+    }
+
+    @GetMapping("/tracks/next")
+    public ResponseEntity<Track> getNextTrack(
+            @RequestParam(required = false) Long currentId) {
+
+        Track track = trackService.getNextTrack(currentId);
+
+        if (track == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(track);
     }
 
