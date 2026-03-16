@@ -1,6 +1,9 @@
 package com.example.spotify.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TrackSearchItemDto {
     private Long trackId;
@@ -33,4 +36,24 @@ public class TrackSearchItemDto {
     public void setArtists(List<String> artists) { this.artists = artists; }
     public List<String> getGenres() { return genres; }
     public void setGenres(List<String> genres) { this.genres = genres; }
+
+    @JsonProperty("track_id")
+    public Long getTrackIdSnakeCase() {
+        return trackId;
+    }
+
+    @JsonProperty("image_url")
+    public String getImageUrlSnakeCase() {
+        return imageUrl;
+    }
+
+    @JsonProperty("artist_name")
+    public String getArtistName() {
+        if (artists == null || artists.isEmpty()) {
+            return null;
+        }
+        return artists.stream()
+                .filter(name -> name != null && !name.isBlank())
+                .collect(Collectors.joining(", "));
+    }
 }
