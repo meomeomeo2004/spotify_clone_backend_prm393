@@ -37,4 +37,15 @@ public class TrackController {
         return ResponseEntity.ok(track);
     }
 
+    @GetMapping("/tracks/previous")
+    public ResponseEntity<Track> getPreviousTrack(
+            @RequestParam(required = false) Long currentId) {
+        Track track = trackService.getPreviousTrack(currentId);
+
+        if (track == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(track);
+    }
+
 }
