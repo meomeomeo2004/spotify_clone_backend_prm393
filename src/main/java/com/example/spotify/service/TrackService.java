@@ -55,5 +55,14 @@ public class TrackService {
 
         return previousTrack;
     }
+    public String getStreamUrlByTrackId(Long trackId) {
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy track_id = " + trackId));
 
+        if (track.getAudioUrl() == null || track.getAudioUrl().isBlank()) {
+            throw new RuntimeException("Track không có audio_url, track_id = " + trackId);
+        }
+
+        return track.getAudioUrl();
+    }
 }
