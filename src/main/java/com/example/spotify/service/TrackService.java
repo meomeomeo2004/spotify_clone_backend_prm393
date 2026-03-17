@@ -1,14 +1,11 @@
 package com.example.spotify.service;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Random;
-
-import org.springframework.data.domain.PageRequest;
+import com.example.spotify.dto.TrackDto;
 import org.springframework.stereotype.Service;
-
 import com.example.spotify.entity.Track;
 import com.example.spotify.repository.TrackRepository;
-import org.springframework.data.domain.Page;
 
 @Service
 public class TrackService {
@@ -54,6 +51,42 @@ public class TrackService {
         }
 
         return previousTrack;
+    }
+
+    public List<TrackDto> getRandomTracks() {
+        return trackRepository.findRandom10Track()
+                .stream()
+                .map(track -> TrackDto.builder()
+                        .id(track.getId())
+                        .imageUrl(track.getImageUrl())
+                        .title(track.getTitle())
+                        .artistName(track.getArtistName())
+                        .audioUrl(track.getAudioUrl())
+                        .build()).toList();
+    }
+
+    public List<TrackDto> getTracksByAlbumId(Long id) {
+        return trackRepository.findTrackByAlbumId(id)
+                .stream()
+                .map(track -> TrackDto.builder()
+                        .id(track.getId())
+                        .imageUrl(track.getImageUrl())
+                        .title(track.getTitle())
+                        .artistName(track.getArtistName())
+                        .audioUrl(track.getAudioUrl())
+                        .build()).toList();
+    }
+
+    public List<TrackDto> getTracksByArtistId(Long id) {
+        return trackRepository.findTrackByArtistId(id)
+                .stream()
+                .map(track -> TrackDto.builder()
+                        .id(track.getId())
+                        .imageUrl(track.getImageUrl())
+                        .title(track.getTitle())
+                        .artistName(track.getArtistName())
+                        .audioUrl(track.getAudioUrl())
+                        .build()).toList();
     }
 
 }
