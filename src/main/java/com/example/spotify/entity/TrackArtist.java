@@ -14,6 +14,12 @@ public class TrackArtist {
     @EmbeddedId
     private TrackArtistId id;
 
+    @MapsId("artistId")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Artist artist;
+
     @MapsId("trackId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
