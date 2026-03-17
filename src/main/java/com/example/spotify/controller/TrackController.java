@@ -36,6 +36,16 @@ public class TrackController {
         }
         return ResponseEntity.ok(track);
     }
+    @GetMapping("/previous")
+    public ResponseEntity<Track> getPreviousTrack(
+            @RequestParam(required = false) Long currentId) {
+
+        Track track = trackService.getPreviousTrack(currentId);
+       if (track == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(track);
+    }
 
     @GetMapping("/recommended-tracks")
     public ResponseEntity<List<TrackDto>> getRandomTracks() {
@@ -50,6 +60,15 @@ public class TrackController {
     @GetMapping("/by-artist-id/{id}")
     public ResponseEntity<List<TrackDto>> getTrackByArtistId(@PathVariable Long id) {
         return ResponseEntity.ok(trackService.getTracksByArtistId(id));
+    }
+      
+    @GetMapping("/{trackId}/stream")
+    public ResponseEntity<Map<String, Object>> getStreamByTrackId(@PathVariable Long trackId) {
+        String audioUrl = trackService.getStreamUrlByTrackId(trackId);
+        return ResponseEntity.ok(Map.of(
+                "track_id", trackId,
+                "audio_url", audioUrl
+        ));
     }
 
 }

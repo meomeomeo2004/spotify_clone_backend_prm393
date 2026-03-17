@@ -29,12 +29,10 @@ public class TrackService {
         if (currentId == null) {
             return trackRepository.findFirstTrack();
         }
-
         Track nextTrack = trackRepository.findNextTrack(currentId);
         if (nextTrack == null) {
             return trackRepository.findFirstTrack();
         }
-
         return nextTrack;
     }
 
@@ -42,16 +40,24 @@ public class TrackService {
         if (currentId == null) {
             return trackRepository.findLastTrack(); // Nếu lỗi không có ID, trả về bài cuối
         }
-
         Track previousTrack = trackRepository.findPreviousTrack(currentId);
         if (previousTrack == null) {
             // Nếu đang ở bài 1 mà bấm lùi (không có bài nào ID nhỏ hơn), quay vòng về bài
             // cuối
             return trackRepository.findLastTrack();
         }
-
         return previousTrack;
     }
+  
+    public String getStreamUrlByTrackId(Long trackId) {
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy track_id = " + trackId));
+              if (track.getAudioUrl() == null || track.getAudioUrl().isBlank()) {
+            throw new RuntimeException("Track không có audio_url, track_id = " + trackId);
+        }
+        return track.getAudioUrl();
+    }
+      
 
     public List<TrackDto> getRandomTracks() {
         return trackRepository.findRandom10Track()
