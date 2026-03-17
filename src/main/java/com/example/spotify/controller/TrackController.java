@@ -8,6 +8,7 @@ import com.example.spotify.entity.Track;
 import com.example.spotify.service.TrackService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tracks")
@@ -32,16 +33,6 @@ public class TrackController {
         Track track = trackService.getNextTrack(currentId);
 
         if (track == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(track);
-    }
-    @GetMapping("/previous")
-    public ResponseEntity<Track> getPreviousTrack(
-            @RequestParam(required = false) Long currentId) {
-
-        Track track = trackService.getPreviousTrack(currentId);
-       if (track == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(track);
