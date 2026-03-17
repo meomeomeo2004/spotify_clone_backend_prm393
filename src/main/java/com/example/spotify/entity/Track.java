@@ -22,8 +22,8 @@ public class Track {
     @Column(name = "title", nullable = false, length = 255)
     private String title;
 
-    @Column(name = "image_url", nullable = false)
-    private String image_url;
+//    @Column(name = "image_url")
+//    private String image_url;
 
     @Column(name = "audio_url", nullable = false, length = 1000)
     private String audioUrl;
