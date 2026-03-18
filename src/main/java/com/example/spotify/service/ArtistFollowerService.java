@@ -35,7 +35,7 @@ public class ArtistFollowerService {
             follower.setId(compositeId);
             follower.setUser(userProxy);
             follower.setArtist(artistProxy);
-            follower.setFollowedAt(Instant.from(LocalDateTime.now()));
+            follower.setFollowedAt(LocalDateTime.now());
             return follower;
         })
                 .collect(Collectors.toList());
