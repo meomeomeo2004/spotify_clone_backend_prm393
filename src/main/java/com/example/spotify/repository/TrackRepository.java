@@ -38,7 +38,7 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
             "FROM Track t join Album al ON t.album.albumId = al.albumId " +
             "Join TrackArtist ta on t.trackId = ta.track.trackId " +
             "JOIN Artist a on ta.artist.id = a.id " +
-            "WHERE al.id = :id ")
+            "WHERE al.albumId = :id ")
     List<TrackDto> findTrackByAlbumId(@Param("id") Long id);
 
     @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name, t.audioUrl) " +
