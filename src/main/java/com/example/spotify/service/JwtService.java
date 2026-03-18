@@ -2,8 +2,8 @@ package com.example.spotify.service;
 
 import com.example.spotify.entity.User;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -12,26 +12,40 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "my-super-secret-key-for-jwt-123456";
-    private static final long EXPIRATION_MS = 1000L * 60 * 60 * 24; // 24 hours
+    private static final String SECRET_KEY =
+            "spotify_secret_key_for_jwt_generation_123456"; // >=32 chars
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-    }
+    private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     public String generateToken(User user) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + EXPIRATION_MS);
-
         return Jwts.builder()
-                .setSubject(user.getUserId().toString())
-                .claim("username", user.getUsername())
-                .claim("email", user.getEmail())
-                .claim("role", user.getRole().toString())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setSubject(user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day
+                .signWith(key)
                 .compact();
     }
-}
 
+    public String extractEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String email = extractEmail(token);
+        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+    private boolean isTokenExpired(String token) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+
+        return expiration.before(new Date());
+    }
+}
