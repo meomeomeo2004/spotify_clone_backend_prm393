@@ -8,9 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 
-@Entity
-@Getter
-@Setter
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 

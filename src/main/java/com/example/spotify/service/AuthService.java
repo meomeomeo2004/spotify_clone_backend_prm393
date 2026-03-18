@@ -1,65 +1,111 @@
 package com.example.spotify.service;
 import com.example.spotify.dto.LoginRequest;
 import com.example.spotify.dto.RegisterRequest;
+import com.example.spotify.dto.AuthResponse;
+import com.example.spotify.dto.UserDto;
 import com.example.spotify.entity.Role;
 import com.example.spotify.entity.Status;
 import com.example.spotify.entity.User;
 import com.example.spotify.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
-    public String register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        String username = request.getUsername() != null ? request.getUsername().trim() : "";
+        String password = request.getPassword() != null ? request.getPassword() : "";
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            return "Email already exists";
+        if (email.isEmpty() || username.isEmpty() || password.isEmpty()) {
+            return new AuthResponse(null, null, "Username, email and password are required");
         }
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            return "Username already exists";
+        if (userRepository.existsByEmail(email)) {
+            return new AuthResponse(null, null, "Email already exists");
+        }
+
+        if (userRepository.existsByUsername(username)) {
+            return new AuthResponse(null, null, "Username already exists");
         }
 
         User user = new User();
-
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(Role.USER);
         user.setStatus(Status.ACTIVE);
         user.setIsPremium(false);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        String token = jwtService.generateToken(savedUser);
+        UserDto userDto = convertToUserDto(savedUser);
 
-        return "Register success";
+        return new AuthResponse(token, userDto);
     }
 
-    public String login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request) {
+        String email = request.getEmail() != null ? request.getEmail().trim() : "";
+        String password = request.getPassword() != null ? request.getPassword() : "";
+
+        if (email.isEmpty() || password.isEmpty()) {
+            return new AuthResponse(null, null, "Email and password are required");
+        }
 
         User user = userRepository
-                .findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                .findByEmail(email)
+                .orElse(null);
+        if (user == null) {
+            return new AuthResponse(null, null, "User not found");
+        }
         if (user.getStatus() == Status.BANNED) {
-            return "Account banned";
+            return new AuthResponse(null, null, "Account banned");
         }
 
-        if (passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            return "Login success";
+        String storedHash = user.getPasswordHash();
+        if (storedHash == null || !storedHash.startsWith("$2")) {
+            logger.warn("User {} has non-BCrypt password hash format", user.getEmail());
+            return new AuthResponse(null, null, "Invalid account password format");
         }
 
-        return "Wrong password";
+        boolean passwordMatched = passwordEncoder.matches(password, storedHash);
+        logger.info("Login attempt for {}. passwordMatched={}", email, passwordMatched);
+        if (!passwordMatched) {
+            return new AuthResponse(null, null, "Wrong password");
+        }
+
+        String token = jwtService.generateToken(user);
+        UserDto userDto = convertToUserDto(user);
+
+        return new AuthResponse(token, userDto);
+        
+    }
+
+    private UserDto convertToUserDto(User user) {
+        return new UserDto(
+            user.getUserId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getRole().toString(),
+            user.getStatus().toString(),
+            user.getIsPremium()
+        );
     }
 }
