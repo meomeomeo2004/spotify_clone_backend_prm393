@@ -1,5 +1,7 @@
 package com.example.spotify.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,6 +11,8 @@ import jakarta.persistence.Table;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tracks")
@@ -114,5 +118,15 @@ public class Track {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+    @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<TrackArtist> trackArtists;
+
+    @JsonProperty("artists")
+    public List<Artist> getArtists() {
+        return trackArtists.stream()
+                .map(TrackArtist::getArtist)
+                .toList();
     }
 }

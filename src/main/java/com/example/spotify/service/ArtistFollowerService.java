@@ -10,6 +10,7 @@ import com.example.spotify.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +35,7 @@ public class ArtistFollowerService {
             follower.setId(compositeId);
             follower.setUser(userProxy);
             follower.setArtist(artistProxy);
-            follower.setFollowedAt(LocalDateTime.now());
+            follower.setFollowedAt(Instant.from(LocalDateTime.now()));
             return follower;
         })
                 .collect(Collectors.toList());
