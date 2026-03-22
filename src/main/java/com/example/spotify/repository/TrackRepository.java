@@ -29,21 +29,32 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
     @Query(value = "SELECT * FROM tracks ORDER BY track_id DESC LIMIT 1", nativeQuery = true)
     Track findLastTrack();
 
-    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name, t.audioUrl) " +
+    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name) " +
             "FROM Track t Join TrackArtist ta on t.trackId = ta.track.trackId " +
             "join Artist a on ta.artist.id = a.id ORDER BY RAND() LIMIT 10")
     List<TrackDto> findRandom10Track();
 
-    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name, t.audioUrl) " +
+    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name) " +
             "FROM Track t join Album al ON t.album.albumId = al.albumId " +
             "Join TrackArtist ta on t.trackId = ta.track.trackId " +
             "JOIN Artist a on ta.artist.id = a.id " +
             "WHERE al.albumId = :id ")
     List<TrackDto> findTrackByAlbumId(@Param("id") Long id);
 
-    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name, t.audioUrl) " +
+    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name) " +
             "FROM Track t JOIN TrackArtist ta ON t.trackId = ta.track.trackId " +
             "JOIN Artist a ON ta.artist.id = a.id " +
             "WHERE a.id = :id ")
     List<TrackDto> findTrackByArtistId(@Param("id") Long id);
+
+    @Query("SELECT new com.example.spotify.dto.TrackDto(t.trackId, t.imageUrl ,t.title, a.name) " +
+            "FROM Track t " +
+            "JOIN TrackArtist ta ON t.trackId = ta.track.trackId " +
+            "JOIN Artist a ON ta.artist.id = a.id " +
+            "JOIN ListeningHistory lh ON t.trackId = lh.track.trackId " +
+            "JOIN User u ON lh.user.userId = u.userId " +
+            "WHERE u.userId = :id " +
+            "GROUP BY t.trackId, t.imageUrl ,t.title, a.name " +
+            "ORDER BY MAX(lh.playedAt) DESC LIMIT 5")
+    List<TrackDto> findHistoryListenTrackByUserId(@Param("id") Long id);
 }
