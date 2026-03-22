@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
@@ -128,14 +129,21 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "Account activated", "user", toDto(saved)));
     }
 
+    private static final DateTimeFormatter DT_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     private UserDto toDto(User user) {
+        String createdAt = user.getCreatedAt() != null
+                ? user.getCreatedAt().format(DT_FMT)
+                : null;
         return new UserDto(
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole().toString(),
                 user.getStatus().toString(),
-                user.getIsPremium()
+                user.getIsPremium(),
+                createdAt
         );
     }
 }
