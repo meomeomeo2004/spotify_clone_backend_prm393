@@ -14,4 +14,6 @@ public class UserDto {
     private String role;
     private String status;
     private Boolean isPremium;
+    /** ISO-8601 string: "yyyy-MM-dd'T'HH:mm:ss", nullable for legacy rows. */
+    private String createdAt;
 }

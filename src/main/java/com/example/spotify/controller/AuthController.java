@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -115,14 +116,21 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token, userDto));
     }
 
+    private static final DateTimeFormatter DT_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     private UserDto convertToUserDto(User user) {
+        String createdAt = user.getCreatedAt() != null
+                ? user.getCreatedAt().format(DT_FMT)
+                : null;
         return new UserDto(
             user.getUserId(),
             user.getUsername(),
             user.getEmail(),
             user.getRole().toString(),
             user.getStatus().toString(),
-            user.getIsPremium()
+            user.getIsPremium(),
+            createdAt
         );
     }
 }
