@@ -50,7 +50,7 @@ public class AuthService {
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setRole(Role.USER);
-        user.setStatus(Status.ACTIVE);
+        user.setStatus(Status.NEW);
         user.setIsPremium(false);
 
         User savedUser = userRepository.save(user);
