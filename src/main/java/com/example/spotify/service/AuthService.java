@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
+
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
@@ -98,14 +100,21 @@ public class AuthService {
         
     }
 
+    private static final DateTimeFormatter DT_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     private UserDto convertToUserDto(User user) {
+        String createdAt = user.getCreatedAt() != null
+                ? user.getCreatedAt().format(DT_FMT)
+                : null;
         return new UserDto(
             user.getUserId(),
             user.getUsername(),
             user.getEmail(),
             user.getRole().toString(),
             user.getStatus().toString(),
-            user.getIsPremium()
+            user.getIsPremium(),
+            createdAt
         );
     }
 }
