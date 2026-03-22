@@ -67,7 +67,6 @@ public class TrackService {
                         .imageUrl(track.getImageUrl())
                         .title(track.getTitle())
                         .artistName(track.getArtistName())
-                        .audioUrl(track.getAudioUrl())
                         .build()).toList();
     }
 
@@ -79,7 +78,6 @@ public class TrackService {
                         .imageUrl(track.getImageUrl())
                         .title(track.getTitle())
                         .artistName(track.getArtistName())
-                        .audioUrl(track.getAudioUrl())
                         .build()).toList();
     }
 
@@ -91,10 +89,17 @@ public class TrackService {
                         .imageUrl(track.getImageUrl())
                         .title(track.getTitle())
                         .artistName(track.getArtistName())
-                        .audioUrl(track.getAudioUrl())
                         .build()).toList();
     }
 
-
-
+    public List<TrackDto> getRecentlyPlayedTracks(Long id) {
+        return trackRepository.findHistoryListenTrackByUserId(id)
+                .stream()
+                .map(track -> TrackDto.builder()
+                        .id(track.getId())
+                        .imageUrl(track.getImageUrl())
+                        .title(track.getTitle())
+                        .artistName(track.getArtistName())
+                        .build()).toList();
+    }
 }
