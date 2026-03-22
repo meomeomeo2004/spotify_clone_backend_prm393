@@ -73,4 +73,9 @@ public class TrackController {
         return ResponseEntity.ok(track);
     }
 
+    @GetMapping("/recently-played/{userId}")
+    public ResponseEntity<List<TrackDto>> getRecentlyPlayed(@PathVariable Long userId) {
+        return ResponseEntity.ok(trackService.getRecentlyPlayedTracks(userId));
+    }
+
 }
