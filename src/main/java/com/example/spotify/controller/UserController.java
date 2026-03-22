@@ -3,6 +3,7 @@ package com.example.spotify.controller;
 import com.example.spotify.dto.ChangePasswordRequest;
 import com.example.spotify.dto.UpdateUsernameRequest;
 import com.example.spotify.dto.UserDto;
+import com.example.spotify.entity.Status;
 import com.example.spotify.entity.User;
 import com.example.spotify.repository.UserRepository;
 import org.slf4j.Logger;
@@ -53,15 +54,7 @@ public class UserController {
         user.setUsername(newUsername);
         User saved = userRepository.save(user);
 
-        UserDto dto = new UserDto(
-                saved.getUserId(),
-                saved.getUsername(),
-                saved.getEmail(),
-                saved.getRole().toString(),
-                saved.getStatus().toString(),
-                saved.getIsPremium()
-        );
-
+        UserDto dto = toDto(saved);
         return ResponseEntity.ok(Map.of("message", "Username updated", "user", dto));
     }
 
@@ -100,5 +93,49 @@ public class UserController {
 
         logger.info("Password changed for user {}", user.getEmail());
         return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+    }
+
+    /**
+     * PUT /api/users/{userId}/activate
+     * Chuyển status từ NEW → ACTIVE sau khi user hoàn thành chọn artist onboarding.
+     * Trả về UserDto mới để Flutter update AuthProvider.
+     */
+    @PutMapping("/{userId}/activate")
+    public ResponseEntity<?> activateUser(@PathVariable Long userId) {
+        if (userId == null || userId <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid userId"));
+        }
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+        }
+
+        User user = optionalUser.get();
+
+        if (user.getStatus() == Status.BANNED) {
+            return ResponseEntity.status(403).body(Map.of("message", "Account is banned"));
+        }
+
+        if (user.getStatus() == Status.ACTIVE) {
+            return ResponseEntity.ok(Map.of("message", "Already active", "user", toDto(user)));
+        }
+
+        user.setStatus(Status.ACTIVE);
+        User saved = userRepository.save(user);
+
+        logger.info("User {} activated after onboarding", saved.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Account activated", "user", toDto(saved)));
+    }
+
+    private UserDto toDto(User user) {
+        return new UserDto(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().toString(),
+                user.getStatus().toString(),
+                user.getIsPremium()
+        );
     }
 }
