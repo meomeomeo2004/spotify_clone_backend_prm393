@@ -1,7 +1,5 @@
 package com.example.spotify.payment;
 
-
-
 import com.example.spotify.payment.dto.CreatePaymentRequest;
 import com.example.spotify.payment.service.PaymentService;
 import com.example.spotify.payment.service.VnpayService;
@@ -17,10 +15,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
-    private  final VnpayService vnpayService;
+
+    private final VnpayService vnpayService;
     private final PaymentService paymentService;
 
-    public PaymentController(PaymentService paymentService,VnpayService vnpayService) {
+    public PaymentController(PaymentService paymentService, VnpayService vnpayService) {
         this.paymentService = paymentService;
         this.vnpayService = vnpayService;
     }
@@ -32,8 +31,12 @@ public class PaymentController {
         try {
             String ip = httpRequest.getRemoteAddr();
 
-            // local test tạm fallback
-            if (userId == null) userId = 1L;
+            // KHÔNG fallback user mặc định
+            if (userId == null) {
+                return ResponseEntity.status(401).body(
+                        Map.of("message", "Unauthorized: missing X-User-Id")
+                );
+            }
 
             return ResponseEntity.ok(paymentService.createPayment(request, ip, userId));
         } catch (Exception e) {
@@ -43,6 +46,7 @@ public class PaymentController {
             );
         }
     }
+
     @GetMapping("/{txnRef}/status")
     public Map<String, String> status(@PathVariable String txnRef) {
         return paymentService.getStatus(txnRef);
@@ -62,7 +66,6 @@ public class PaymentController {
         String transactionStatus = params.getOrDefault("vnp_TransactionStatus", "");
         boolean success = validSignature && "00".equals(responseCode) && "00".equals(transactionStatus);
 
-        // local-only: có thể hiện trang text thay vì deep link
         String deepLink = "myspotify://payment-result?status=" + (success ? "success" : "failed") + "&txnRef=" + txnRef;
         response.sendRedirect(deepLink);
     }
@@ -87,24 +90,22 @@ public class PaymentController {
         return ack;
     }
 
+    @GetMapping("/vnpay/manual-confirm")
+    public Map<String, String> manualConfirm(@RequestParam Map<String, String> params) {
+        boolean valid = vnpayService.verifySignature(params);
+        if (!valid) {
+            return Map.of("ok", "false", "message", "Invalid signature");
+        }
+
+        paymentService.handleVnpReturnOrIpn(params);
+        return Map.of("ok", "true", "txnRef", params.getOrDefault("vnp_TxnRef", ""));
+    }
+
     private Map<String, String> extractAll(HttpServletRequest request) {
         Map<String, String> map = new HashMap<>();
         request.getParameterMap().forEach((k, v) -> {
             if (v != null && v.length > 0) map.put(k, v[0]);
         });
         return map;
-    }
-    @GetMapping("/vnpay/manual-confirm")
-    public Map<String, String> manualConfirm(@RequestParam Map<String, String> params) {
-        // 1) verify chữ ký trước
-        boolean valid = vnpayService.verifySignature(params);
-        if (!valid) {
-            return Map.of("ok", "false", "message", "Invalid signature");
-        }
-
-        // 2) cập nhật DB giống luồng ipn/return
-        paymentService.handleVnpReturnOrIpn(params);
-
-        return Map.of("ok", "true", "txnRef", params.getOrDefault("vnp_TxnRef", ""));
     }
 }
