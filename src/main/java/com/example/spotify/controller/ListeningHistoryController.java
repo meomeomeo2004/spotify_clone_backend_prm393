@@ -2,12 +2,12 @@ package com.example.spotify.controller;
 
 
 import com.example.spotify.dto.HistoryRequestDto;
+import com.example.spotify.dto.TrackHistoryDto;
 import com.example.spotify.service.HistoryRequestService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/history")
@@ -29,5 +29,10 @@ public class ListeningHistoryController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Lỗi server: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/played-all-time/{userId}")
+    public ResponseEntity<List<TrackHistoryDto>> getPlayedHistory(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(historyService.getHistoryGrouped(userId));
     }
 }
