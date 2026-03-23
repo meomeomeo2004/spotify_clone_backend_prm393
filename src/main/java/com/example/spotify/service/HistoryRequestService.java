@@ -1,5 +1,7 @@
 package com.example.spotify.service;
 
+import com.example.spotify.dto.TrackDto;
+import com.example.spotify.dto.TrackHistoryDto;
 import com.example.spotify.entity.ListeningHistory;
 import com.example.spotify.entity.Track;
 import com.example.spotify.entity.User;
@@ -9,6 +11,7 @@ import com.example.spotify.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class HistoryRequestService {
@@ -31,5 +34,17 @@ public class HistoryRequestService {
         history.setTrack(track);
         history.setPlayedAt(LocalDateTime.now());
         historyRepository.save(history);
+    }
+
+    public List<TrackHistoryDto> getHistoryGrouped(Long userId) {
+        return historyRepository.getHistoryGrouped(userId)
+                .stream()
+                .map(track -> TrackHistoryDto.builder()
+                        .id(track.getId())
+                        .imageUrl(track.getImageUrl())
+                        .title(track.getTitle())
+                        .artistName(track.getArtistName())
+                        .playedAt(track.getPlayedAt())
+                        .build()).toList();
     }
 }
