@@ -33,8 +33,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Column(name = "is_premium")
-    private Boolean isPremium;
+    @Column(name = "is_premium", nullable = false)
+    private Boolean isPremium = false;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -1,9 +1,11 @@
 package com.example.spotify.payment.service;
 
+
+import com.example.spotify.entity.User;
 import com.example.spotify.payment.dto.CreatePaymentRequest;
 import com.example.spotify.payment.entity.PaymentTransaction;
 import com.example.spotify.payment.repository.PaymentTransactionRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.spotify.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +18,14 @@ public class PaymentService {
 
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final VnpayService vnpayService;
+    private final UserRepository userRepository;
 
     public PaymentService(PaymentTransactionRepository paymentTransactionRepository,
-                          VnpayService vnpayService) {
+                          VnpayService vnpayService,
+                          UserRepository userRepository) {
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.vnpayService = vnpayService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -29,10 +34,13 @@ public class PaymentService {
             throw new IllegalArgumentException("user_id is required");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
         String txnRef = "PM" + System.currentTimeMillis();
 
         PaymentTransaction tx = new PaymentTransaction();
-        tx.setUserId(userId); // <-- FIX QUAN TRỌNG
+        tx.setUser(user); // <-- dùng object User thay vì setUserId
         tx.setTxnRef(txnRef);
         tx.setPlanId(request.getPlanId());
         tx.setAmount(request.getAmount());
@@ -75,6 +83,17 @@ public class PaymentService {
         tx.setStatus(success ? "SUCCESS" : "FAILED");
 
         paymentTransactionRepository.save(tx);
+
+        if (success) {
+            User user = tx.getUser(); // <-- thay vì getUserId()
+            if (user == null) {
+                throw new IllegalStateException("Transaction has no user");
+            }
+
+            // đổi theo setter thực tế của entity User
+            user.setIsPremium(true); // hoặc user.setPremium(true)
+            userRepository.save(user);
+        }
     }
 
     public Map<String, String> getStatus(String txnRef) {
