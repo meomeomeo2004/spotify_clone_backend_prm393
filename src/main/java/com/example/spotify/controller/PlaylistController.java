@@ -4,6 +4,7 @@ import com.example.spotify.dto.AddTrackToPlaylistRequest;
 import com.example.spotify.dto.CreatePlaylistRequest;
 import com.example.spotify.dto.PlaylistDetailDto;
 import com.example.spotify.dto.PlaylistDto;
+import com.example.spotify.dto.UpdatePlaylistRequest;
 import com.example.spotify.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -77,6 +78,32 @@ public class PlaylistController {
         try {
             PlaylistDetailDto detail = playlistService.removeTrackFromPlaylist(playlistId, trackId, userId);
             return ResponseEntity.ok(detail);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("message", e.getReason() != null ? e.getReason() : "Error"));
+        }
+    }
+
+    @PutMapping("/{playlistId}")
+    public ResponseEntity<?> renamePlaylist(
+            @PathVariable Long playlistId,
+            @RequestBody UpdatePlaylistRequest body) {
+        try {
+            PlaylistDto updated = playlistService.renamePlaylist(playlistId, body);
+            return ResponseEntity.ok(updated);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("message", e.getReason() != null ? e.getReason() : "Error"));
+        }
+    }
+
+    @DeleteMapping("/{playlistId}")
+    public ResponseEntity<?> deletePlaylist(
+            @PathVariable Long playlistId,
+            @RequestParam Long userId) {
+        try {
+            playlistService.deletePlaylist(playlistId, userId);
+            return ResponseEntity.noContent().build();
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode())
                     .body(Map.of("message", e.getReason() != null ? e.getReason() : "Error"));
