@@ -5,6 +5,7 @@ import com.example.spotify.dto.CreatePlaylistRequest;
 import com.example.spotify.dto.PlaylistDetailDto;
 import com.example.spotify.dto.PlaylistDto;
 import com.example.spotify.dto.PlaylistTrackItemDto;
+import com.example.spotify.dto.UpdatePlaylistRequest;
 import com.example.spotify.entity.Playlist;
 import com.example.spotify.entity.PlaylistTrack;
 import com.example.spotify.entity.PlaylistTrackId;
@@ -217,5 +218,48 @@ public class PlaylistService {
         playlistRepo.save(playlist);
 
         return getPlaylistDetail(playlistId, userId);
+    }
+
+    @Transactional
+    public PlaylistDto renamePlaylist(Long playlistId, UpdatePlaylistRequest req) {
+        if (playlistId == null || playlistId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid playlistId");
+        }
+        if (req == null || req.getUserId() == null || req.getUserId() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid userId");
+        }
+        String newName = req.getName() != null ? req.getName().trim() : "";
+        if (newName.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist name is required");
+        }
+
+        Playlist playlist = playlistRepo.findById(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        if (playlist.getUser() == null || !req.getUserId().equals(playlist.getUser().getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this playlist");
+        }
+
+        playlist.setName(newName);
+        playlist.setUpdatedAt(LocalDateTime.now());
+        playlist = playlistRepo.save(playlist);
+        return toListDto(playlist);
+    }
+
+    @Transactional
+    public void deletePlaylist(Long playlistId, Long userId) {
+        if (playlistId == null || playlistId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid playlistId");
+        }
+        if (userId == null || userId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid userId");
+        }
+
+        Playlist playlist = playlistRepo.findById(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist not found"));
+        if (playlist.getUser() == null || !userId.equals(playlist.getUser().getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not own this playlist");
+        }
+
+        playlistRepo.delete(playlist);
     }
 }
